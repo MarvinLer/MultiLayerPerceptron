@@ -32,5 +32,5 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* This repository is intended to be filled with various handwritten models and architectures including VAE, GAN, RNN etc
+* This repository is intended to be filled with various handwritten models and architectures including MLP, VAE, GAN, RNN etc
 
