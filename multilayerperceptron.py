@@ -1,4 +1,5 @@
 import numpy as np
+from functions import *
 from utils import print_progress_bar
 
 
@@ -15,11 +16,14 @@ class DenseLayer(object):
         elif activation == 'softmax':
             self.activation = softmax
             self.grad_activation = grad_softmax
-        elif not activation:
+        elif activation == 'sigmoid':
+            self.activation = sigmoid
+            self.grad_activation = grad_sigmoid
+        elif activation is None:
             self.activation = identity
             self.grad_activation = grad_identity
         else:
-            raise ValueError('select activation among "relu" or "softmax"')
+            raise ValueError('select activation among "relu", "softmax" or "sigmoid"')
         # Parameters
         self.w = self.init_weights()
         self.b = self.init_biases()
@@ -28,7 +32,6 @@ class DenseLayer(object):
         self.x = np.zeros(n_inputs)  # Layer inputs
         self.z = np.zeros(n_neurons)  # Layer linear operation
         self.a = np.zeros(n_neurons)  # Layer activations
-        self.params_a = np.zeros(n_neurons)  # Contains block computation of activation
 
     def init_biases(self):
         # Biases put to 0. at beginning
@@ -43,20 +46,19 @@ class DenseLayer(object):
         # Forward pass
         self.x = x
         self.z = self.w.T.dot(self.x) + self.b
-        self.params_a, self.a = self.activation(self.z)
+        self.a = self.activation(self.z)
         return self.a
 
     def backpropagation(self, da, lr):
         # backprop self.a = self.activation(self.z)
-        dz = self.grad_activation(self.z, *self.params_a) * da  # Dot-product
-        assert dz.shape == self.a.shape, 'Expected shape ' + self.a.shape + ' got shape ' + dz.shape
+        dz = self.grad_activation(self.a) * da  # Dot-product
         # backprop on w for self.z = self.w.T * self.x + self.b
         dw = np.outer(self.x, dz)
-        assert dw.shape == self.w.shape, 'Expected shape ' + self.w.shape + ' got shape ' + dw.shape
         # backprop on b for self.z = self.w.T * self.x + self.b
         db = 1. * dz
         # backprop self.x = x
-        dx = self.w.dot(dz)
+        #dx = self.w.dot(dz)
+        dx = dz.dot(self.w.T)
 
         self.b -= lr * db
         self.w -= lr * dw
@@ -71,14 +73,19 @@ class MLP(object):
         self.n_layers = 0
         self.layers = []
         if cost_function == 'cross_entropy':
-            self.loss, self.grad_loss = softmax_cross_entropy_loss, grad_softmax_cross_entropy_loss
+            self.loss, self.grad_loss = cross_entropy_loss, grad_cross_entropy_loss
         self.learning_rate = learning_rate
 
         self.last_output = None  # Save last network output
 
     def add_layer(self, n_neurons, activation='relu'):
-        self.n_layers += 1
+        """
+        Append a layer to the end of the network.
+        :param n_neurons: the number of output neurons desired
+        :param activation: the type of activation function desired
+        """
         self.layers.append(DenseLayer(n_neurons, self.n_outputs, self.n_layers, activation))
+        self.n_layers += 1
         self.n_outputs = n_neurons
 
     def summary(self):
@@ -92,84 +99,76 @@ class MLP(object):
         print row_format.format("Layer", "Input shape", "Output shape", "N parameters")
         print inter_line
         for layer in self.layers:
-            print row_format.format(layer.name, layer.x.shape, layer.a.shape, layer.w.size+layer.b.size)
+            print row_format.format(layer.name, layer.x.shape, layer.a.shape, layer.w.size + layer.b.size)
             print inter_line
 
     def forward(self, x):
+        """
+        Performs forward pass using the input x.
+        :param x: input array
+        """
         output = x
         for layer in self.layers:
             output = layer.forward(output)
         self.last_output = output
+        return self.last_output
 
     def backpropagation(self, ytrue):
-        y, loss = self.loss(self.last_output, ytrue)
-        error = self.grad_loss(y, ytrue)
+        """
+        Performs backpropagation throughout the whole network using chain rule.
+        :param ytrue: true array of labels from the previous input
+        :return: computed loss from forward pass and true labels
+        """
+        loss = self.loss(self.last_output, ytrue)
+        error = self.grad_loss(self.last_output, ytrue)
         for layer in self.layers[::-1]:
             error = layer.backpropagation(error, self.learning_rate)
         return loss
 
-    def fit(self, xtrain, ytrain, n_steps, n_print=1):
-        print '\nStarting training'
-        print_progress_bar(0, n_steps, prefix='Step %d/%d' % (0, n_steps))
+    def fit(self, xtrain, ytrain, n_steps, verbose=True):
+        """
+        Train the network.
+        :param xtrain: array containing the training data
+        :param ytrain: array containing the training labels
+        :param n_steps: number of steps for training
+        :param verbose: True to print training stats
+        """
+        if verbose:
+            print '\nStarting training'
+
         for i in range(n_steps):
-            self.forward(xtrain[i])
-            loss = self.backpropagation(ytrain[i])
-            if i % n_print == 0:
-                print_progress_bar(i, n_steps, prefix='Step %d/%d' % (i, n_steps), suffix='loss=%.4f' % loss)
-        print_progress_bar(n_steps, n_steps, prefix='Step %d/%d' % (n_steps, n_steps), suffix='loss=%.4f' % loss)
+            self.forward(xtrain[i % len(xtrain)])
+            loss = self.backpropagation(ytrain[i % len(xtrain)])
+            if verbose:
+                print_progress_bar(i + 1, n_steps, prefix='Step %d/%d' % (i + 1, n_steps), suffix='loss=%.4f' % loss)
 
-    @staticmethod
-    def log_likelihood_loss(a, y):
-        return -np.dot(y, a.softmax(a).transpose())
+    def predict(self, x, verbose=True):
+        """
+        Predict the given data using the network.
+        :param x: array of data to predict
+        :param verbose: True to print training stats
+        """
+        if verbose:
+            print '\nStarting predictions'
 
+        predictions = np.zeros((len(x), self.n_outputs))
+        n_steps = len(x)
+        for i, data in enumerate(x):
+            predictions[i] = self.forward(data)
+            if verbose:
+                print_progress_bar(i + 1, n_steps, prefix='Step %d/%d' % (i + 1, n_steps))
 
-def softmax(x):
-    # Computation: decompose formula into elementary segments to easily compute backprop afterwards
-    num = np.exp(x)
-    den = np.sum(num, axis=0)
-    invden = 1. / den
-    softx = num * invden
-    return [num, den, invden], softx
+        return predictions
 
-
-def grad_softmax(dy, num, den, invden):
-    # backprop softx = num * invden
-    dnum = invden
-    dinvden = num
-    # backprop invden = 1.0 / den
-    dden = (-1. / (den ** 2)) * dinvden
-    # backprop den = np.sum(num, axis=0)
-    dnum += 1. * dden
-    # backprop num = np.exp(x)
-    dx = num * dnum
-
-    return dy * dx
-
-
-def softmax_cross_entropy_loss(z, ytrue):
-    _, y = softmax(z)
-    return y, -np.sum(ytrue * np.log(y), axis=-1)
-
-
-def grad_softmax_cross_entropy_loss(y, ytrue):
-    return ytrue - y
-
-
-def relu(x):
-    relux = np.where(x > 0., x, 0.)
-    return [relux], relux
-
-
-def grad_relu(dy, relux):
-    dx = np.where(relux > 0., 1., 0.)
-    return dy * dx
-
-
-def identity(x):
-    return [x], x
-
-
-def grad_identity(dy, x):
-    return dy * 1.
-
-
+    def get_metrics(self, x, y, verbose=True):
+        predictions = self.predict(x, verbose=verbose)
+        # Compute loss metrics
+        errors = self.loss(predictions, y)
+        print 'Error on predictions: %.5f +/- %.5f' % (np.mean(errors), np.std(errors))
+        # Compute accuracy metrics
+        accuracy = np.mean(np.argmax(predictions, axis=-1) == np.argmax(y, axis=-1))
+        print 'Accuracy on predictions: %.4f' % accuracy
+        import pylab as plt
+        plt.hist(errors, bins=30)
+        plt.show()
+        return

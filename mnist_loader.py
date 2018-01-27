@@ -9,7 +9,8 @@ def preprocess(images, labels, one_hot, normalize):
     # One-hot labels
     if one_hot:
         tmp = np.zeros((len(labels), n_classes))
-        tmp[:, labels] = 1.
+        for i, l in enumerate(labels):
+            tmp[i, l] = 1.
         labels = tmp
 
     # Normalize pixel input to [0, 1]
