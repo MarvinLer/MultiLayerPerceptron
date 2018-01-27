@@ -18,7 +18,7 @@ numpy >= 1.13
 The file within the folder examples/mlp_mnist contains an illustration of code using the mlp. It trains a 3-layer mlp with 784/100/10 neurons for 20000 steps using stochastic gradient descent and then retrieve loss and accuracy on the test set. To launch it:
 
 ```
-Give an example
+python -m examples.mlp_mnist.mnist_classifier
 ```
 
 from the root folder.
