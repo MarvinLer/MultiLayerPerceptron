@@ -1,7 +1,6 @@
 __author__ = 'marvin'
-from mnist_loader import load_mnist
+from examples.mlp_mnist.mnist_loader import load_mnist
 from multilayerperceptron import MLP
-import numpy as np
 
 n_classes = 10
 
@@ -16,7 +15,7 @@ print('  Done')
 mlp = MLP(n_inputs=784, learning_rate=5e-1,
           cost_function='cross_entropy', random_state=123)
 
-#mlp.add_layer(1, activation='sigmoid')
+mlp.add_layer(100, activation='sigmoid')
 mlp.add_layer(n_classes, activation='softmax')
 mlp.summary()
 mlp.fit(xtrain, ytrain, n_steps=20000)

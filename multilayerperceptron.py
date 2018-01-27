@@ -34,15 +34,27 @@ class DenseLayer(object):
         self.a = np.zeros(n_neurons)  # Layer activations
 
     def init_biases(self):
+        """
+        Initializes layer biases (one per output neuron)
+        :return: a np array with bias init values
+        """
         # Biases put to 0. at beginning
         return np.zeros(self.n_neurons)
 
     def init_weights(self):
+        """
+        Initializes layer weights (one per output neuron)
+        :return: a np array with bias init values
+        """
         # Xavier initialization
         var = 2. / (float(self.n_neurons + self.n_inputs))
         return np.random.normal(loc=0., scale=np.sqrt(var), size=(self.n_inputs, self.n_neurons))
 
     def forward(self, x):
+        """
+        Performs forward pass of the layer using the input x.
+        :param x: input array
+        """
         # Forward pass
         self.x = x
         self.z = self.w.T.dot(self.x) + self.b
@@ -50,6 +62,12 @@ class DenseLayer(object):
         return self.a
 
     def backpropagation(self, da, lr):
+        """
+        Performs backpropagation from activation to input layer using chain rule.
+        :param da: backpropagation input error
+        :param lr: learning rate (step for the gradient descent)
+        :return: computed loss from forward pass and true labels
+        """
         # backprop self.a = self.activation(self.z)
         dz = self.grad_activation(self.a) * da  # Dot-product
         # backprop on w for self.z = self.w.T * self.x + self.b
@@ -104,7 +122,7 @@ class MLP(object):
 
     def forward(self, x):
         """
-        Performs forward pass using the input x.
+        Performs forward pass of the whole network using the input x.
         :param x: input array
         """
         output = x
@@ -161,6 +179,12 @@ class MLP(object):
         return predictions
 
     def get_metrics(self, x, y, verbose=True):
+        """
+        Print computed metrics on the dataset (x, y).
+        :param x: input data to predict
+        :param y: labels associated to x
+        :param verbose: True to print prediction advancement
+        """
         predictions = self.predict(x, verbose=verbose)
         # Compute loss metrics
         errors = self.loss(predictions, y)
@@ -168,7 +192,6 @@ class MLP(object):
         # Compute accuracy metrics
         accuracy = np.mean(np.argmax(predictions, axis=-1) == np.argmax(y, axis=-1))
         print 'Accuracy on predictions: %.4f' % accuracy
-        import pylab as plt
-        plt.hist(errors, bins=30)
-        plt.show()
-        return
+        #import pylab as plt
+        #plt.hist(errors, bins=30)
+        #plt.show()

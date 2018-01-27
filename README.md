@@ -1,5 +1,37 @@
-Multi-Layer Perceptron Classifier
-==========================
-A handwritten **Multilayer Perceptron Classifier**
+# A handwritten Multi-Layer Perception classifier
 
-In development
+This repository contains a custom code of a MLP classifier that depends only on numpy. Thus, this version is intended to be minimalist and easy to use in applications.
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+
+### Prerequisites
+
+```
+python 2.7.10
+numpy >= 1.13
+```
+
+## Running an example
+
+The file within the folder examples/mlp_mnist contains an illustration of code using the mlp. It trains a 3-layer mlp with 784/100/10 neurons for 20000 steps using stochastic gradient descent and then retrieve loss and accuracy on the test set. To launch it:
+
+```
+Give an example
+```
+
+from the root folder.
+
+## Authors
+
+* **Marvin Lerousseau** - *Ongoing work*
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* This repository is intended to be filled with various handwritten models and architectures including VAE, GAN, RNN etc
+
