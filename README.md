@@ -19,6 +19,7 @@ python -m examples.mlp_mnist.mnist_classifier
 ```
 
 from the root folder.
+
 The whole training + testing process runs within less than one minute on a i5, and achieves a cross-entropy loss of 0.247 with an accuracy of 0.922.
 
 ## Authors
