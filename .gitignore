@@ -3,3 +3,4 @@
 venv/
 examples/alm_compet/
 data/alm_compet/
+*.png

@@ -15,6 +15,6 @@ mlp.add_dense_layer(100, activation='relu')
 mlp.add_dropout_layer(dropout=.3)
 mlp.add_dense_layer(n_classes, activation='softmax')
 mlp.summary()
-mlp.fit(xtrain, ytrain, xtrain, ytrain, n_epochs=5, shuffle=True)
+mlp.fit(xtrain, ytrain, xtest, ytest, n_epochs=5, shuffle=True)
 
-mlp.get_metrics(xtrain, ytrain)
+mlp.get_metrics(xtest, ytest)

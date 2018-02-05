@@ -2,6 +2,7 @@ import numpy as np
 
 from src import functions
 from src.utils import print_progress_bar
+from examples.mlp_mnist.mnist_loader import plot_digit
 
 
 class DenseLayer(object):
@@ -149,6 +150,10 @@ class MLP(object):
         self.layers = []
         if cost_function == 'cross_entropy':
             self.loss, self.grad_loss = functions.cross_entropy_loss, functions.grad_cross_entropy_loss
+        elif cost_function == 'squared_loss':
+            self.loss, self.grad_loss = functions.squared_loss, functions.grad_cross_entropy_loss
+        else:
+            raise ValueError('%s cost function unknown' % cost_function)
         self.learning_rate = learning_rate
         self.batch_size = batch_size
 
@@ -167,7 +172,6 @@ class MLP(object):
     def add_dropout_layer(self, dropout=0.2):
         """
         Append a dropout layer to the end of the network.
-        :param n_neurons: the number of output neurons desired
         :param dropout: percetage of neurons to discard
         """
         self.layers.append(DropoutLayer(n_neurons=self.n_outputs, id_layer=self.n_layers, dropout=dropout))
@@ -264,6 +268,8 @@ class MLP(object):
                 val_mean, val_std, val_acc = self.get_metrics(xval, yval, verbose=False)
                 print ' val_loss=%.4f val_acc=%.3f' % (val_mean, val_acc)
 
+            plot_digit(xval[0], self.forward(xval[0]), epoch)
+
     def predict(self, x, verbose=True):
         """
         Predict the given data using the network.
@@ -299,9 +305,6 @@ class MLP(object):
         if verbose:
             print 'Error on predictions: %.5f +/- %.5f' % (np.mean(errors), np.std(errors))
             print 'Accuracy on predictions: %.4f' % accuracy
-        #import pylab as plt
-        #plt.hist(errors, bins=30)
-        #plt.show()
 
         return np.mean(errors), np.std(errors), accuracy
 
