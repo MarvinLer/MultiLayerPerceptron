@@ -20,6 +20,4 @@ def print_progress_bar(iteration, total, prefix='', suffix='', bar_length=30):
     bar = '█' * filled_length + '-' * (bar_length - filled_length)
 
     sys.stdout.write('\r%s |%s| %s' % (prefix, bar, suffix)),
-
-    if iteration == total:
-        sys.stdout.write('\n')
+    sys.stdout.flush()

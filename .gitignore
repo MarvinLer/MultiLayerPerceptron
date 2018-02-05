@@ -1,2 +1,5 @@
 *.pyc
 .idea/*
+venv/
+examples/alm_compet/
+data/alm_compet/
