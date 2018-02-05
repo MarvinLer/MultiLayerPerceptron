@@ -43,11 +43,15 @@ def cross_entropy_loss(predictions, ytrue, epsilon=1e-8):
 
 
 def grad_cross_entropy_loss(y, ytrue):
-    # print 'ce'
-    # print 'y', y
-    # print 'ytrue', ytrue
-    # print 'grad ce', y - ytrue
     return y - ytrue
+
+
+def squared_loss(y, ytrue):
+    return (y - ytrue) ** 2.
+
+
+def grad_squared_loss(y, ytrue):
+    return 2. * (y - ytrue)
 
 
 def dropout(x, perc_dropout):
@@ -57,3 +61,27 @@ def dropout(x, perc_dropout):
 
 def grad_dropout(keep_matrix):
     return np.where(keep_matrix, 1., 0.)
+
+
+def log_loss(x):
+    return np.log10(x)
+
+
+def grad_log_loss(y, _):
+    return 1. / y
+
+
+def discriminator_loss(dx, dgz):
+    return np.log10(dx) + np.log10(1. - dgz)
+
+
+def grad_discriminator_loss(dx, dgz):
+    return -1. / dx + 1. / (1. - dgz)
+
+
+def generator_loss(dgz):
+    return -np.log10(dgz)
+
+
+def grad_generator_loss(grad_dgz, dgz):
+    return -grad_dgz / dgz

@@ -4,3 +4,4 @@ venv/
 examples/alm_compet/
 data/alm_compet/
 *.DS_Store
+*.png
