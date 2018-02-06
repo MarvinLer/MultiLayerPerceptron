@@ -1,6 +1,7 @@
 # A handwritten Multi-Layer Perception classifier
 
 This repository contains a custom code of a MLP classifier that depends only on numpy. Thus, this version is intended to be minimalist and easy to use in applications.
+/!\ Project in development; a stable version will be shipped soon.
 
 ## Getting Started
 ### Prerequisites

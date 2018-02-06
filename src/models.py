@@ -1,147 +1,12 @@
 import numpy as np
 
 from src import functions
+from src.layers import Dense, Dropout
 from src.utils import print_progress_bar
 from examples.mlp_mnist.mnist_loader import plot_digit
 
 
-class DenseLayer(object):
-    def __init__(self, n_neurons, n_inputs, id_layer, activation='relu'):
-        self.inference = True
-
-        self.id_layer = id_layer
-        self.name = 'Dense layer %d' % self.id_layer
-        self.n_neurons = n_neurons  # Output number of neurons
-        self.n_inputs = n_inputs  # Input number of neurons
-        # Activation function with its gradient
-        if activation == 'relu':
-            self.activation = functions.relu
-            self.grad_activation = functions.grad_relu
-        elif activation == 'softmax':
-            self.activation = functions.softmax
-            self.grad_activation = functions.grad_softmax
-        elif activation == 'sigmoid':
-            self.activation = functions.sigmoid
-            self.grad_activation = functions.grad_sigmoid
-        elif activation is None:
-            self.activation = functions.identity
-            self.grad_activation = functions.grad_identity
-        else:
-            raise ValueError('select activation among "relu", "softmax" or "sigmoid"')
-        # Parameters
-        self.w = self.init_weights()
-        self.b = self.init_biases()
-        # Update history
-        self.dw = np.zeros(self.w.shape)
-        self.db = np.zeros(self.b.shape)
-
-        # Saved computed variables to accelerate backpropagation computation
-        self.x = np.zeros(n_inputs)  # Layer inputs
-        self.z = np.zeros(n_neurons)  # Layer linear operation
-        self.a = np.zeros(n_neurons)  # Layer activations
-
-    def init_biases(self):
-        """
-        Initializes layer biases (one per output neuron)
-        :return: a np array with bias init values
-        """
-        # Biases put to 0. at beginning
-        return np.zeros(self.n_neurons)
-
-    def init_weights(self):
-        """
-        Initializes layer weights (one per output neuron)
-        :return: a np array with bias init values
-        """
-        # Xavier initialization
-        var = 2. / (float(self.n_neurons + self.n_inputs))
-        return np.random.normal(loc=0., scale=np.sqrt(var), size=(self.n_inputs, self.n_neurons))
-
-    def forward(self, x):
-        """
-        Performs forward pass of the layer using the input x.
-        :param x: input array
-        """
-        # Forward pass
-        self.x = x
-        #self.z = self.w.T.dot(self.x) + self.b
-        self.z = self.x.dot(self.w) + self.b
-        self.a = self.activation(self.z)
-        return self.a
-
-    def backpropagation(self, da, lr, momentum):
-        """
-        Performs backpropagation from activation to input layer using chain rule.
-        :param da: backpropagation input error
-        :param lr: learning rate (step for the gradient descent)
-        :return: computed loss from forward pass and true labels
-        """
-        # backprop self.a = self.activation(self.z)
-        dz = self.grad_activation(self.a) * da  # Dot-product
-        # backprop on w for self.z = self.x.dot(self.w) + self.b
-        dw = np.matmul(self.x[:, :, np.newaxis], dz[:, np.newaxis, :])
-        assert dw.shape == (self.x.shape[0], self.n_inputs, self.n_neurons), dw.shape
-        # backprop on b for self.z = self.x.dot(self.w) + self.b
-        db = 1. * dz
-        # backprop self.x = x
-        dx = dz.dot(self.w.T)
-
-        # Compute the vectors of parameters update
-        db = np.mean(db, axis=0)
-        dw = np.mean(dw, axis=0)
-        # Momentum
-        if momentum:
-            self.db = momentum * self.db + lr * db
-            self.dw = momentum * self.dw + lr * dw
-        else:
-            self.db = lr * db
-            self.dw = lr * dw
-
-        self.b -= self.db
-        self.w -= self.dw
-        return dx  # Propagates error signal
-
-
-class DropoutLayer(object):
-    def __init__(self, n_neurons, id_layer, dropout):
-        self.inference = False
-
-        self.id_layer = id_layer
-        self.name = 'Dropout layer %d' % self.id_layer
-        self.dropout = dropout  # Percentage of elements to discard
-        # Activation function with its gradient
-        self.activation = functions.dropout
-        self.grad_activation = functions.grad_dropout
-
-        # Saved computed variables to accelerate backpropagation computation
-        self.x = np.zeros(n_neurons)  # Layer inputs
-        self.a = np.zeros(n_neurons)  # Layer activations
-        self.keep_matrix = np.zeros(n_neurons)  # Keep probability matrix to easily compute layer backprop
-
-    def forward(self, x):
-        """
-        Performs forward pass of the layer using the input x.
-        :param x: input array
-        """
-        # Forward pass
-        self.x = x
-        self.a, self.keep_matrix = self.activation(self.x, self.dropout)
-        return self.a
-
-    def backpropagation(self, da, *args):
-        """
-        Performs backpropagation from activation to input layer using chain rule: propagate gradient neuron by neuron
-        if neuron was active during forward pass.
-        :param da: backpropagation input error
-        :param _: learning rate (step for the gradient descent); not used
-        :return: computed loss from forward pass and true labels
-        """
-        # backprop self.a = self.activation(self.x)
-        dx = self.grad_activation(self.keep_matrix) * da
-        return dx  # Propagates error signal
-
-
-class MLP(object):
+class Sequential(object):
     def __init__(self, n_inputs, cost_function='cross_entropy', learning_rate=1e-3, batch_size=32, random_state=None):
         np.random.seed(random_state)
         self.n_inputs = n_inputs
@@ -152,6 +17,10 @@ class MLP(object):
             self.loss, self.grad_loss = functions.cross_entropy_loss, functions.grad_cross_entropy_loss
         elif cost_function == 'squared_loss':
             self.loss, self.grad_loss = functions.squared_loss, functions.grad_cross_entropy_loss
+        elif cost_function == 'gan_discriminator':
+            self.loss, self.grad_loss = functions.discriminator_loss, functions.grad_discriminator_loss
+        elif cost_function == 'gan_generator':
+            self.loss, self.grad_loss = functions.generator_loss, functions.grad_generator_loss
         else:
             raise ValueError('%s cost function unknown' % cost_function)
         self.learning_rate = learning_rate
@@ -165,7 +34,7 @@ class MLP(object):
         :param n_neurons: the number of output neurons desired
         :param activation: the type of activation function desired
         """
-        self.layers.append(DenseLayer(n_neurons, self.n_outputs, self.n_layers, activation))
+        self.layers.append(Dense(self.n_layers, self.n_outputs, n_neurons, activation))
         self.n_layers += 1
         self.n_outputs = n_neurons
 
@@ -174,7 +43,7 @@ class MLP(object):
         Append a dropout layer to the end of the network.
         :param dropout: percetage of neurons to discard
         """
-        self.layers.append(DropoutLayer(n_neurons=self.n_outputs, id_layer=self.n_layers, dropout=dropout))
+        self.layers.append(Dropout(n_neurons=self.n_outputs, id_layer=self.n_layers, dropout=dropout))
         self.n_layers += 1
         self.n_outputs = self.n_outputs
 
@@ -258,7 +127,7 @@ class MLP(object):
                                        prefix='Epoch %02d/%02d step %04d/%04d' % (epoch, n_epochs, i + 1, n_steps),
                                        suffix='loss=%.4f acc=%.3f' % (np.mean(rolling_loss[-n_steps // 50:]),
                                                                       np.mean(rolling_accuracy[-n_steps // 50:])))
-                if verbose and i == n_steps-1:
+                if verbose and i == n_steps - 1:
                     print_progress_bar(i + 1, n_steps,
                                        prefix='Epoch %02d/%02d step %04d/%04d' % (epoch, n_epochs, i + 1, n_steps),
                                        suffix='loss=%.4f acc=%.3f' % (np.mean(rolling_loss),
@@ -268,7 +137,7 @@ class MLP(object):
                 val_mean, val_std, val_acc = self.get_metrics(xval, yval, verbose=False)
                 print ' val_loss=%.4f val_acc=%.3f' % (val_mean, val_acc)
 
-            plot_digit(xval[0], self.forward(xval[0]), epoch)
+            #plot_digit(xval[0], self.forward(xval[0]), epoch)
 
     def predict(self, x, verbose=True):
         """

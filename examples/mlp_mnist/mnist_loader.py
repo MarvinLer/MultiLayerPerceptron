@@ -39,15 +39,18 @@ def load_mnist(path, kind='train', one_hot=True, normalize=True):
 
 def plot_digit(init, digit, i):
     pixels = np.array(digit * 255., dtype='uint8')
-    pixels_init = np.array(init * 255., dtype='uint8')
+    if init is not None:
+        pixels_init = np.array(init * 255., dtype='uint8')
 
     # Reshape the array into 28 x 28 array (2-dimensional array)
     pixels = pixels.reshape((28, 28))
-    pixels_init = pixels_init.reshape((28, 28))
+    if init is not None:
+        pixels_init = pixels_init.reshape((28, 28))
 
     # Plot
     plt.imshow(pixels, cmap='gray')
     plt.savefig('%d.png' % i)
-    plt.imshow(pixels_init, cmap='gray')
-    plt.savefig('%d_init.png' % i)
+    if init is not None:
+        plt.imshow(pixels_init, cmap='gray')
+        plt.savefig('%d_init.png' % i)
     return
