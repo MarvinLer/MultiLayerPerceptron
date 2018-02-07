@@ -117,7 +117,7 @@ class Sequential(object):
         :param momentum: float between 0. and 1. for gradient descent momentum; None for no momentum
         """
         if verbose:
-            print '\nStarting training'
+            print('\nStarting training')
 
         if not n_epochs:
             n_epochs = 1
@@ -158,7 +158,7 @@ class Sequential(object):
 
             if verbose:
                 val_mean, val_std, val_acc = self.get_metrics(xval, yval, verbose=False)
-                print ' val_loss=%.4f val_acc=%.3f' % (val_mean, val_acc)
+                print(' val_loss=%.4f val_acc=%.3f' % (val_mean, val_acc))
 
                 #plot_digit(xval[0], self.forward(xval[0]), epoch)
 
@@ -169,7 +169,7 @@ class Sequential(object):
         :param verbose: True to print training stats
         """
         if verbose:
-            print '\nStarting predictions'
+            print('\nStarting predictions')
 
         predictions = []
         n_steps = len(x) // self.batch_size if not len(x) % self.batch_size else len(x) // self.batch_size + 1
@@ -195,8 +195,8 @@ class Sequential(object):
         # Compute accuracy metrics
         accuracy = np.mean(np.argmax(predictions, axis=-1) == np.argmax(y, axis=-1))
         if verbose:
-            print 'Error on predictions: %.5f +/- %.5f' % (np.mean(errors), np.std(errors))
-            print 'Accuracy on predictions: %.4f' % accuracy
+            print('Error on predictions: %.5f +/- %.5f' % (np.mean(errors), np.std(errors)))
+            print('Accuracy on predictions: %.4f' % accuracy)
 
         return np.mean(errors), np.std(errors), accuracy
 
@@ -207,13 +207,13 @@ class Sequential(object):
         n_columns = 4  # Layer name; input shape; output shape; number of parameters
         row_format = "{:>25}" * 4
         inter_line = "-" * 25 * n_columns
-        print inter_line
-        print row_format.format("Layer", "Input shape", "Output shape", "N parameters")
-        print inter_line
+        print(inter_line)
+        print(row_format.format("Layer", "Input shape", "Output shape", "N parameters"))
+        print(inter_line)
         for layer in self.layers:
             name, input_shape, output_shape, n_parameters = layer.summary()
-            print row_format.format(name, input_shape, output_shape, n_parameters)
-            print inter_line
+            print(row_format.format(name, input_shape, output_shape, n_parameters))
+            print(inter_line)
 
 
 class GAN(object):
@@ -273,7 +273,7 @@ class GAN(object):
 
     def fit(self, xtrain, n_epochs=None, n_steps=None, shuffle=True, momentum=None, verbose=True):
         if verbose:
-            print '\nStarting training'
+            print('\nStarting training')
 
         if not n_epochs:
             n_epochs = 1
@@ -320,11 +320,10 @@ class GAN(object):
                 if i % 1000 == 0:
                     plot_digit(None, self.gz_gen[0], epoch * n_steps + i)
 
-            print ' '
+            print(' ')
 
     def summary(self):
-        print 'GENERATOR'
+        print('GENERATOR')
         self.generator.summary()
-        print
-        print 'DISCRIMINATOR'
+        print('DISCRIMINATOR')
         self.discriminator.summary()

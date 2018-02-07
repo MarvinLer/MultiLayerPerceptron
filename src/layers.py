@@ -189,7 +189,7 @@ class Conv2D(object):
         # tuples of 2 elements
         windows_idx = [(slice(i, i + self.filter_size[0], 1), slice(j, j + self.filter_size[1], 1)) for i in
                        range(self.output_shape[0]) for j in range(self.output_shape[1])]
-        print 'x', x.shape
+        print('x', x.shape)
         self.x_windowed = np.apply_along_axis(lambda xi: [xi[wx, wy, :] for wx, wy in windows_idx], axis=0, arr=x)
         for window in self.x_windowed:
             assert window.shape[1, 2] == (self.filter_size[0], self.filter_size[1])
