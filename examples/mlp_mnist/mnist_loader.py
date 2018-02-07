@@ -22,7 +22,7 @@ def preprocess(images, labels, one_hot, normalize):
     return images, labels
 
 
-def load_mnist(path, kind='train', one_hot=True, normalize=True):
+def load_mnist(path, kind='train', one_hot=True, normalize=True, reshape2d=False):
     labels_path = os.path.join('data', path, '%s-labels-idx1-ubyte' % kind)
     images_path = os.path.join('data', path, '%s-images-idx3-ubyte' % kind)
     with open(labels_path, 'rb') as lpath:
@@ -33,6 +33,9 @@ def load_mnist(path, kind='train', one_hot=True, normalize=True):
         images = np.fromfile(imgpath, dtype=np.uint8).reshape(len(labels), 784)
 
     images, labels = preprocess(images, labels, one_hot, normalize)
+
+    if reshape2d:
+        images = np.reshape(images, (-1, 28, 28, 1))
 
     return images, labels
 

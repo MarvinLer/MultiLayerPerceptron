@@ -9,7 +9,7 @@ def main():
     xtest, ytest = load_mnist('mnist', 't10k')
     print('  Done')
 
-    mlp = Sequential(n_inputs=784, cost_function='squared_loss', learning_rate=1e-3, batch_size=64, random_state=123)
+    mlp = Sequential(input_shape=784, cost_function='squared_loss', learning_rate=1e-3, batch_size=64, random_state=123)
 
     mlp.add_dense_layer(50, activation='relu')
     mlp.add_dense_layer(784, activation='relu')

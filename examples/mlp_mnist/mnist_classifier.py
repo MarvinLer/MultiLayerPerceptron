@@ -9,7 +9,7 @@ xtrain, ytrain = load_mnist('mnist', 'train')
 xtest, ytest = load_mnist('mnist', 't10k')
 print('  Done')
 
-mlp = Sequential(n_inputs=784, cost_function='cross_entropy', learning_rate=5e-1, batch_size=32, random_state=123)
+mlp = Sequential(input_shape=(784,), cost_function='cross_entropy', learning_rate=5e-1, batch_size=32, random_state=123)
 
 mlp.add_dense_layer(100, activation='relu')
 mlp.add_dropout_layer(dropout=.3)

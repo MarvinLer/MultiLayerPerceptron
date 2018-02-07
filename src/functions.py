@@ -72,7 +72,7 @@ def grad_log_loss(y, _):
 
 
 def discriminator_loss(dx, dgz):
-    return np.log10(dx) + np.log10(1. - dgz)
+    return -np.log10(dx) - np.log10(1. - dgz)
 
 
 def grad_discriminator_loss(dx, dgz):
@@ -83,5 +83,5 @@ def generator_loss(dgz):
     return -np.log10(dgz)
 
 
-def grad_generator_loss(grad_dgz, dgz):
-    return -grad_dgz / dgz
+def grad_generator_loss(grad_d_gz, dgz):
+    return -grad_d_gz / dgz
